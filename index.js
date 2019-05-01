@@ -19,7 +19,7 @@ const sleep = time_to_sleep => new Promise(resolve => setTimeout(() => resolve()
 async function extract_data_from_page(page, page_url, store) {
   try {
     await page.goto(page_url)    
-    await sleep(1000)
+    await sleep(500)
 
     const data = await page.evaluate((title_sel, price_sel, discount_new_sel, discount_old_sel, discount_end_date_sel, message) => {
       const title = document.querySelector(title_sel).innerText
@@ -61,7 +61,7 @@ async function scan_store(browser, store, pages) {
 
 async function run() {
   const browser = await puppeteer.launch({
-    headless: false
+    headless: true
   })
   const games = await fue.readFile('./games.txt')
   const pages = games.split('\r\n')
