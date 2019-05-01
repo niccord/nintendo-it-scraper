@@ -16,9 +16,8 @@ const store_info = {
 
 const sleep = time_to_sleep => new Promise(resolve => setTimeout(() => resolve(), time_to_sleep))
 
-async function extract_data_from_page(browser, page_url, store) {
+async function extract_data_from_page(page, page_url, store) {
   try {
-    const page = await browser.newPage()
     await page.goto(page_url)    
     await sleep(1000)
 
@@ -35,37 +34,40 @@ async function extract_data_from_page(browser, page_url, store) {
 
       return { title, price, discount_new_price, discount_old_price, discount_end_date }
     }, title_selector, normal_price_selector, discount_new_price_selector, discount_old_price_selector, discount_end_date_selector, store.discount_message)
-    
-    if (data.discount_new_price) {
-      console.log(`🔥🔥 ${data.title} is on sale on ${store.region} store until ${data.discount_end_date}! ${data.discount_new_price} instead of ${data.discount_old_price}`)
-    } else {
-      console.log(`${data.title} is at its normal price of ${data.price}`)
-    }
-    return page
+
+    return data
   } catch (e) {
-    console.log('Error', e)
+    console.log(`Error on ${page_url} evaluation`)
   }
 }
 
 async function scan_store(browser, store, pages) {
+  const allData = []
+  const page = await browser.newPage()
+  console.time('extract-data')
   for (let index = 0; index < pages.length; index++) {
     const element = pages[index];
-    const page = await extract_data_from_page(browser, element, store)
-    if (page && index < pages.length - 1) {
-      page.close()
+    const data = await extract_data_from_page(page, element, store)
+    if (data) {
+      allData.push(data)
+      console.log(`${data.title} evaluated`)
     }
   }
+  console.timeEnd('extract-data')
+  await page.close()
+  allData.sort((a, b) => a.title.localeCompare(b.title))
+  console.table(allData)
 }
 
 async function run() {
   const browser = await puppeteer.launch({
-    headless: true
+    headless: false
   })
   const games = await fue.readFile('./games.txt')
   const pages = games.split('\r\n')
 
   await scan_store(browser, store_info, pages)
-  browser.close()
+  await browser.close()
 }
 
-run();
+run()
