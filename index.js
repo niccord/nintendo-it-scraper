@@ -19,7 +19,7 @@ const sleep = time_to_sleep => new Promise(resolve => setTimeout(() => resolve()
 async function extract_data_from_page(page, page_url, store) {
   try {
     await page.goto(page_url)    
-    await sleep(500)
+    await sleep(1100)
 
     const data = await page.evaluate((title_sel, price_sel, discount_new_sel, discount_old_sel, discount_end_date_sel, message) => {
       const title = document.querySelector(title_sel).innerText
@@ -50,7 +50,11 @@ async function scan_store(browser, store, pages) {
     const data = await extract_data_from_page(page, element, store)
     if (data) {
       allData.push(data)
-      console.log(`${data.title} evaluated`)
+      if (data.discount_new_price) {
+        console.log(`🔥🔥🔥 ${data.title} ${data.discount_new_price}`)
+      } else {
+        console.log(`${data.title} ${data.price}`)
+      }
     }
   }
   console.timeEnd('extract-data')
