@@ -14,12 +14,10 @@ const store_info = {
   discount_message: 'Promozione valida fino al '
 }
 
-const sleep = time_to_sleep => new Promise(resolve => setTimeout(() => resolve(), time_to_sleep))
-
 async function extract_data_from_page(page, page_url, store) {
   try {
     await page.goto(page_url)    
-    await sleep(1100)
+    await page.waitForSelector(normal_price_selector)
 
     const data = await page.evaluate((title_sel, price_sel, discount_new_sel, discount_old_sel, discount_end_date_sel, message) => {
       const title = document.querySelector(title_sel).innerText
